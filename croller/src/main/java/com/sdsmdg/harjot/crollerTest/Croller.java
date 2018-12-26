@@ -313,7 +313,7 @@ public class Croller extends View {
 
             for (int i = 0; i < max; i++) {
 
-                double tmp = (2 * Math.PI / max) * i - Math.PI/2 + Math.PI/max;
+                double tmp =   ((float) sweepAngle / 360) * (2 * Math.PI / max) * i - Math.PI/2 + Math.PI/max + 2 * ( startOffset2) * Math.PI / 360;
 
                 if (isAntiClockwise) {
                     tmp = 1.0f - tmp;
@@ -323,7 +323,7 @@ public class Croller extends View {
                 y = midy + (float) (progressRadius * Math.sin(tmp));
 
                 if (progressSecondaryCircleSize == -1)
-                    canvas.drawCircle(x, y, ((float) radius / 30 * ((float) 20 / max) * ((float) sweepAngle / 270)), circlePaint);
+                    canvas.drawCircle(x, y, ((float) radius / 30 * ((float) 20 / max) * ((float) sweepAngle / 360)), circlePaint);
                 else
                     canvas.drawCircle(x, y, progressSecondaryCircleSize, circlePaint);
             }
@@ -331,7 +331,7 @@ public class Croller extends View {
 
             for (int i = 0; i < deg2; i++) {
 
-                double tmp = (2 * Math.PI / max) * i - Math.PI/2 + Math.PI/max;
+                double tmp = ((float) sweepAngle / 360) *  (2 * Math.PI / max) * i - Math.PI/2 + Math.PI/max + 2 * ( startOffset2) * Math.PI / 360;
 
 
                 if (isAntiClockwise) {
@@ -347,7 +347,7 @@ public class Croller extends View {
                     canvas.drawCircle(x, y, progressPrimaryCircleSize, circlePaint2);
             }
 
-            double tmp2 = (2 * Math.PI / max) * (deg -1) - Math.PI/2 + Math.PI/max;
+            double tmp2 = ((float) sweepAngle / 360) * (2 * Math.PI / max) * (deg -1) - Math.PI/2 + Math.PI/max + 2 * ( startOffset2) * Math.PI / 360;
 
             if (isAntiClockwise) {
                 tmp2 = 1.0f - tmp2;
@@ -453,7 +453,7 @@ public class Croller extends View {
 
             float dx = e.getX() - midx;
             float dy = e.getY() - midy;
-            downdeg = (float)((Math.atan2(dy, dx) + Math.PI/2 - Math.PI/max)* 180 / Math.PI);
+            downdeg = (float)((Math.atan2(dy, dx) + Math.PI/2 - Math.PI/max)* 180 / Math.PI) * ((float) 360 / sweepAngle);
 
             if (downdeg < 0) {
                 downdeg += 360;
@@ -471,7 +471,7 @@ public class Croller extends View {
         if (e.getAction() == MotionEvent.ACTION_MOVE) {
             float dx = e.getX() - midx;
             float dy = e.getY() - midy;
-            currdeg = (float) (float)((Math.atan2(dy, dx) + Math.PI/2 - Math.PI/max)* 180 / Math.PI);
+            currdeg = (float)((Math.atan2(dy, dx) + Math.PI/2 - Math.PI/max)* 180 / Math.PI) * ((float) 360 / sweepAngle);
             if (currdeg < 0) {
                 currdeg += 360;
             }
@@ -763,7 +763,9 @@ public class Croller extends View {
     }
 
     public void setSweepAngle(int sweepAngle) {
-        this.sweepAngle = sweepAngle;
+
+        if(sweepAngle == 0) this.sweepAngle = -1;
+        else this.sweepAngle = sweepAngle;
         invalidate();
     }
 
