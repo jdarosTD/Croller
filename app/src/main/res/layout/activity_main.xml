@@ -22,6 +22,8 @@
         app:label_disabled_color="@android:color/transparent"
         app:label_size="25dp"
         app:main_circle_color="#FFFFFF"
+        app:progress_primary_circle_size="15dp"
+        app:progress_secondary_circle_size="15dp"
         app:max="26"
         app:min="1"
         app:sweep_angle="-1"
@@ -37,5 +39,27 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="49dp"
         android:text="Enable " />
+
+
+    <Button
+        android:id="@+id/minus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="20dp"
+        android:layout_marginBottom="20dp"
+        android:layout_alignParentBottom="true"
+        android:text="-1"/>
+
+    <Button
+        android:id="@+id/plus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:text="+1"/>
+
 
 </RelativeLayout>

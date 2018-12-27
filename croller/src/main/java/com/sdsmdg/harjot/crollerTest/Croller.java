@@ -1,5 +1,7 @@
 package com.sdsmdg.harjot.crollerTest;
 
+import android.animation.PropertyValuesHolder;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.TypedArray;
@@ -13,14 +15,17 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 
 import com.sdsmdg.harjot.croller.R;
 import com.sdsmdg.harjot.crollerTest.utilities.Utils;
 
 public class Croller extends View {
 
+    private static final String PROPERTY_FADE_RATIO = "property_fade_ratio";
+
     private float midx, midy;
-    private Paint textPaint, circlePaint, circlePaint2, linePaint;
+    private Paint textPaint, circlePaint, circlePaint2, linePaint,nextCirclePaint;
     private float currdeg = 0, deg = 0, downdeg = 0;
 
     private boolean isContinuous = false;
@@ -41,6 +46,7 @@ public class Croller extends View {
     private float progressSecondaryCircleSize = -1;
 
     private float progressPrimaryStrokeWidth = 25;
+    private float progressNextPrimaryStrokeWidth = 5;
     private float progressSecondaryStrokeWidth = 10;
 
     private float mainCircleRadius = -1;
@@ -74,6 +80,9 @@ public class Croller extends View {
 
     private onProgressChangedListener mProgressChangeListener;
     private OnCrollerChangeListener mCrollerChangeListener;
+    private ValueAnimator mAnimator;
+    private float mFadeRatio = 1;
+    private boolean mProgressMode = true;
 
     public interface onProgressChangedListener {
         void onProgressChanged(int progress);
@@ -129,13 +138,22 @@ public class Croller extends View {
         linePaint.setAntiAlias(true);
         linePaint.setStrokeWidth(indicatorWidth);
 
+        nextCirclePaint = new Paint();
+        nextCirclePaint.setAntiAlias(true);
+        nextCirclePaint.setStrokeWidth(progressNextPrimaryStrokeWidth);
+        nextCirclePaint.setStyle(Paint.Style.STROKE);
+
+
         if (isEnabled) {
             circlePaint2.setColor(progressPrimaryColor);
             circlePaint.setColor(progressSecondaryColor);
             linePaint.setColor(indicatorColor);
             textPaint.setColor(labelColor);
+            nextCirclePaint.setColor(progressPrimaryColor);
+
         } else {
             circlePaint2.setColor(progressPrimaryDisabledColor);
+            nextCirclePaint.setColor(progressPrimaryDisabledColor);
             circlePaint.setColor(progressSecondaryDisabledColor);
             linePaint.setColor(indicatorDisabledColor);
             textPaint.setColor(labelDisabledColor);
@@ -197,10 +215,13 @@ public class Croller extends View {
         setLabelStyle(a.getInt(R.styleable.Croller_label_style, 0));
         setIndicatorWidth(a.getFloat(R.styleable.Croller_indicator_width, 7));
         setIsContinuous(a.getBoolean(R.styleable.Croller_is_continuous, false));
-        setProgressPrimaryCircleSize(a.getFloat(R.styleable.Croller_progress_primary_circle_size, -1));
-        setProgressSecondaryCircleSize(a.getFloat(R.styleable.Croller_progress_secondary_circle_size, -1));
-        setProgressPrimaryStrokeWidth(a.getFloat(R.styleable.Croller_progress_primary_stroke_width, 25));
-        setProgressSecondaryStrokeWidth(a.getFloat(R.styleable.Croller_progress_secondary_stroke_width, 10));
+
+        setProgressPrimaryCircleSize(a.getDimension(R.styleable.Croller_progress_primary_circle_size, -1));
+        setProgressSecondaryCircleSize(a.getDimension(R.styleable.Croller_progress_secondary_circle_size, -1));
+        setProgressPrimaryStrokeWidth(a.getDimension(R.styleable.Croller_progress_primary_stroke_width, 5));
+        setProgressSecondaryStrokeWidth(a.getDimension(R.styleable.Croller_progress_secondary_stroke_width, 10));
+
+
         setSweepAngle(a.getInt(R.styleable.Croller_sweep_angle, -1));
         setStartOffset(a.getInt(R.styleable.Croller_start_offset, 30));
         setMax(a.getInt(R.styleable.Croller_max, 25));
@@ -277,11 +298,13 @@ public class Croller extends View {
             circlePaint.setColor(progressSecondaryColor);
             linePaint.setColor(indicatorColor);
             textPaint.setColor(labelColor);
+            nextCirclePaint.setColor(progressPrimaryColor);
         } else {
             circlePaint2.setColor(progressPrimaryDisabledColor);
             circlePaint.setColor(progressSecondaryDisabledColor);
             linePaint.setColor(indicatorDisabledColor);
             textPaint.setColor(labelDisabledColor);
+            nextCirclePaint.setColor(progressPrimaryDisabledColor);
         }
 
         if (!isContinuous) {
@@ -309,7 +332,7 @@ public class Croller extends View {
 
             float x, y;
             float deg2 = Math.max(0, deg);
-            float deg3 = Math.min(deg, max);
+            
 
             for (int i = 0; i < max; i++) {
 
@@ -323,14 +346,23 @@ public class Croller extends View {
                 y = midy + (float) (progressRadius * Math.sin(tmp));
 
                 if (progressSecondaryCircleSize == -1) {
-//                    float secondCircleRadius = ((float) radius / 30 * ((float) 20 / max) * ((float) sweepAngle / 360));
-
                     float secondCircleRadius = (float) (Math.PI * radius * sweepAngle / (2 * max * 360));
-
                     canvas.drawCircle(x, y, secondCircleRadius, circlePaint);
                 }
-                else
-                    canvas.drawCircle(x, y, progressSecondaryCircleSize, circlePaint);
+                else  canvas.drawCircle(x, y, progressSecondaryCircleSize, circlePaint);
+
+                if(i == deg2 && deg2 != max){
+
+                    float circleRatio=  !mProgressMode ? (mFadeRatio * 255) : 255;
+
+                    nextCirclePaint.setAlpha((int) (mFadeRatio * circleRatio ));
+                    if (progressSecondaryCircleSize == -1) {
+                        float secondCircleRadius = (float) (Math.PI * radius * sweepAngle / (2 * max * 360));
+                        canvas.drawCircle(x, y, secondCircleRadius, nextCirclePaint);
+                    }
+                    else  canvas.drawCircle(x, y, progressSecondaryCircleSize, nextCirclePaint);
+                }
+
             }
 
 
@@ -345,11 +377,22 @@ public class Croller extends View {
 
                 x = midx + (float) (progressRadius * Math.cos(tmp));
                 y = midy + (float) (progressRadius * Math.sin(tmp));
+                float  circleRadius;
 
-                if (progressPrimaryCircleSize == -1)
-                    canvas.drawCircle(x, y, (progressRadius / 15 * ((float) 20 / max) * ((float) sweepAngle / 270)), circlePaint2);
-                else
-                    canvas.drawCircle(x, y, progressPrimaryCircleSize, circlePaint2);
+
+                float circleRatio=  (i== (deg2 -1) && !mProgressMode) ? (1- mFadeRatio) * 255 : 255;
+                Paint circlePaint2Copy = new Paint(circlePaint2);
+                circlePaint2Copy.setAlpha((int) (mFadeRatio * circleRatio));
+
+                if (progressPrimaryCircleSize == -1) {
+                    circleRadius= (progressRadius / 15 * ((float) 20 / max) * ((float) sweepAngle / 270));
+
+                    canvas.drawCircle(x, y, circleRadius, circlePaint2);
+                }
+                else {
+                    circleRadius = progressPrimaryCircleSize;
+                    canvas.drawCircle(x, y, circleRadius, circlePaint2);
+                }
             }
 
             double tmp2 = ((float) sweepAngle / 360) * (2 * Math.PI / max) * (deg -1) - Math.PI/2 + Math.PI/max + 2 * ( startOffset2) * Math.PI / 360;
@@ -557,12 +600,34 @@ public class Croller extends View {
     }
 
     public int getProgress() {
-        return (int) (deg - 2);
+        return (int) (deg);
     }
 
     public void setProgress(int x) {
+        PropertyValuesHolder propertyRadius;
+        if(deg < x) {
+            propertyRadius  = PropertyValuesHolder.ofFloat(PROPERTY_FADE_RATIO, 0, 1);
+            mProgressMode  = true;
+        }
+        else        {
+            propertyRadius  = PropertyValuesHolder.ofFloat(PROPERTY_FADE_RATIO, 0, 1);
+            mProgressMode  = true;
+        }
+
         deg = x;
-        invalidate();
+        if(mAnimator != null)   mAnimator.cancel();
+        mAnimator = new ValueAnimator();
+        mAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        mAnimator.setValues(propertyRadius);
+        mAnimator.setDuration(200);
+        mAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                mFadeRatio = (float) animation.getAnimatedValue(PROPERTY_FADE_RATIO);
+                invalidate();
+            }
+        });
+        mAnimator.start();
     }
 
     public String getLabel() {
@@ -734,6 +799,10 @@ public class Croller extends View {
     }
 
     public void setProgressPrimaryCircleSize(float progressPrimaryCircleSize) {
+        if(progressPrimaryCircleSize != -1){
+            this.progressPrimaryCircleSize = TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP, progressPrimaryCircleSize,getResources().getDisplayMetrics());
+        }
         this.progressPrimaryCircleSize = progressPrimaryCircleSize;
         invalidate();
     }
@@ -743,6 +812,10 @@ public class Croller extends View {
     }
 
     public void setProgressSecondaryCircleSize(float progressSecondaryCircleSize) {
+        if(progressSecondaryCircleSize != -1){
+            this.progressSecondaryCircleSize = TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP, progressSecondaryCircleSize,getResources().getDisplayMetrics());
+        }
         this.progressSecondaryCircleSize = progressSecondaryCircleSize;
         invalidate();
     }
@@ -752,7 +825,8 @@ public class Croller extends View {
     }
 
     public void setProgressPrimaryStrokeWidth(float progressPrimaryStrokeWidth) {
-        this.progressPrimaryStrokeWidth = progressPrimaryStrokeWidth;
+        this.progressPrimaryStrokeWidth = TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, progressPrimaryStrokeWidth,getResources().getDisplayMetrics());
         invalidate();
     }
 
@@ -761,7 +835,11 @@ public class Croller extends View {
     }
 
     public void setProgressSecondaryStrokeWidth(float progressSecondaryStrokeWidth) {
-        this.progressSecondaryStrokeWidth = progressSecondaryStrokeWidth;
+
+
+
+        this.progressSecondaryStrokeWidth = TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, progressSecondaryStrokeWidth,getResources().getDisplayMetrics());
         invalidate();
     }
 

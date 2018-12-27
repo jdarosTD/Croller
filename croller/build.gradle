@@ -1,10 +1,15 @@
+group = rootProject.ext.group
+
+
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+
 
 ext {
     bintrayRepo = 'Croller'
     bintrayName = 'croller'
 
-    publishedGroupId = 'com.sdsmdg.harjot'
+    group = 'com.ins.android.library'
     libraryName = 'Croller'
     artifact = 'croller'
 
@@ -13,7 +18,6 @@ ext {
     siteUrl = 'https://github.com/harjot-oberai/Croller'
     gitUrl = 'https://github.com/harjot-oberai/Croller.git'
 
-    libraryVersion = '1.0.7'
 
     developerId = 'harjot-oberai'
     developerName = 'Harjot Singh Oberai'
@@ -24,7 +28,7 @@ ext {
     allLicenses = ["Apache-2.0"]
 }
 
-version = '1.0.1'
+version = rootProject.ext.versionName
 
 android {
     compileSdkVersion 27
@@ -48,6 +52,26 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     testImplementation 'junit:junit:4.12'
     implementation 'com.android.support:appcompat-v7:27.1.1'
+}
+
+
+uploadArchives {
+
+    repositories {
+        mavenDeployer {
+
+
+            if (project.version.endsWith('-SNAPSHOT')) {
+                repository(url: "https://nexus.insgroup.fr/repository/insgroup_snapshot") {
+                    authentication(userName: jenkinsUsername, password: jenkinsPassword)
+                }
+            } else {
+                repository(url: "https://nexus.insgroup.fr/repository/insgroup_release") {
+                    authentication(userName: jenkinsUsername, password: jenkinsPassword)
+                }
+            }
+        }
+    }
 }
 
 //apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'

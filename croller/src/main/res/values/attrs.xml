@@ -26,10 +26,10 @@
         <attr name="label_disabled_color" format="color" />
         <attr name="indicator_width" format="float" />
         <attr name="is_continuous" format="boolean" />
-        <attr name="progress_primary_circle_size" format="float" />
-        <attr name="progress_secondary_circle_size" format="float" />
-        <attr name="progress_primary_stroke_width" format="float" />
-        <attr name="progress_secondary_stroke_width" format="float" />
+        <attr name="progress_primary_circle_size" format="dimension" />
+        <attr name="progress_secondary_circle_size" format="dimension" />
+        <attr name="progress_primary_stroke_width" format="dimension" />
+        <attr name="progress_secondary_stroke_width" format="dimension" />
         <attr name="sweep_angle" format="integer" />
         <attr name="start_offset" format="integer" />
         <attr name="max" format="integer" />

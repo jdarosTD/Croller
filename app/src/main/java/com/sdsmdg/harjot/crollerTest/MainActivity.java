@@ -3,12 +3,16 @@ package com.sdsmdg.harjot.crollerTest;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
+import android.view.View;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
     private Croller croller;
+    private Button plus;
+    private Button minus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,6 +23,9 @@ public class MainActivity extends AppCompatActivity {
         SwitchCompat enableSwitch = findViewById(R.id.enableSwitch);
 
         enableSwitch.setChecked(croller.isEnabled());
+
+        minus = findViewById(R.id.minus);
+        plus  = findViewById(R.id.plus);
 
 //        croller.setIndicatorWidth(10);
 //        croller.setBackCircleColor(Color.parseColor("#EDEDED"));
@@ -34,6 +41,20 @@ public class MainActivity extends AppCompatActivity {
 //        croller.setBackCircleRadius(300);
 
 
+        minus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                croller.setProgress(croller.getProgress() - 1);
+            }
+        });
+
+
+        plus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                croller.setProgress(croller.getProgress() + 1);
+            }
+        });
         croller.setOnCrollerChangeListener(new OnCrollerChangeListener() {
             @Override
             public void onProgressChanged(Croller croller, int progress) {
