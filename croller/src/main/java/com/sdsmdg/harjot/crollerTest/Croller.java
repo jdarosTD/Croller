@@ -294,7 +294,7 @@ public class Croller extends View {
             int radius = (int) (Math.min(midx, midy) * ((float) 14.5 / 16));
 
             if (sweepAngle == -1) {
-                sweepAngle = 360 - (2 * startOffset2);
+                sweepAngle = 360;
             }
 
             if (mainCircleRadius == -1) {
@@ -322,8 +322,13 @@ public class Croller extends View {
                 x = midx + (float) (progressRadius * Math.cos(tmp));
                 y = midy + (float) (progressRadius * Math.sin(tmp));
 
-                if (progressSecondaryCircleSize == -1)
-                    canvas.drawCircle(x, y, ((float) radius / 30 * ((float) 20 / max) * ((float) sweepAngle / 360)), circlePaint);
+                if (progressSecondaryCircleSize == -1) {
+//                    float secondCircleRadius = ((float) radius / 30 * ((float) 20 / max) * ((float) sweepAngle / 360));
+
+                    float secondCircleRadius = (float) (Math.PI * radius * sweepAngle / (2 * max * 360));
+
+                    canvas.drawCircle(x, y, secondCircleRadius, circlePaint);
+                }
                 else
                     canvas.drawCircle(x, y, progressSecondaryCircleSize, circlePaint);
             }
@@ -376,7 +381,7 @@ public class Croller extends View {
             int radius = (int) (Math.min(midx, midy) * ((float) 14.5 / 16));
 
             if (sweepAngle == -1) {
-                sweepAngle = 360 - (2 * startOffset);
+                sweepAngle = 360;
             }
 
             if (mainCircleRadius == -1) {
@@ -453,13 +458,13 @@ public class Croller extends View {
 
             float dx = e.getX() - midx;
             float dy = e.getY() - midy;
-            downdeg = (float)((Math.atan2(dy, dx) + Math.PI/2 - Math.PI/max)* 180 / Math.PI) * ((float) 360 / sweepAngle);
+            downdeg = (float)((Math.atan2(dy, dx) + Math.PI/2)* 180 / Math.PI);
 
+            downdeg =  downdeg - startOffset2 -  180 /max ;
             if (downdeg < 0) {
                 downdeg += 360;
             }
-
-            downdeg = (float) Math.floor((downdeg / 360) * max);
+            downdeg = (float) Math.floor((downdeg / sweepAngle) * max);
             Log.d("DEBUG",  "DOWN DEG is " + downdeg);
             if (mCrollerChangeListener != null) {
                 mCrollerChangeListener.onStartTrackingTouch(this);
@@ -471,12 +476,14 @@ public class Croller extends View {
         if (e.getAction() == MotionEvent.ACTION_MOVE) {
             float dx = e.getX() - midx;
             float dy = e.getY() - midy;
-            currdeg = (float)((Math.atan2(dy, dx) + Math.PI/2 - Math.PI/max)* 180 / Math.PI) * ((float) 360 / sweepAngle);
+            currdeg =  (float)((Math.atan2(dy, dx) + Math.PI/2)* 180 / Math.PI);
+
+            currdeg =  currdeg - startOffset2 -  180 /max ;
             if (currdeg < 0) {
                 currdeg += 360;
             }
-            currdeg = (float) Math.floor((currdeg / 360) * max);
-            Log.d("DEBUG",  "MOVE DEG is " + downdeg);
+            currdeg = (float) Math.floor((currdeg / sweepAngle) * max);
+            Log.d("DEBUG",  "MOVE DEG is " + currdeg);
 
             if ((currdeg / (max )) > 0.75f && ((downdeg - 0) / (max )) < 0.25f) {
                 if (isAntiClockwise) {
