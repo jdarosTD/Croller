@@ -10,12 +10,17 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.support.v4.view.animation.FastOutLinearInInterpolator;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.AnticipateInterpolator;
+import android.view.animation.BounceInterpolator;
+import android.view.animation.CycleInterpolator;
+import android.view.animation.DecelerateInterpolator;
 
 import com.sdsmdg.harjot.croller.R;
 import com.sdsmdg.harjot.crollerTest.utilities.Utils;
@@ -83,6 +88,7 @@ public class Croller extends View {
     private ValueAnimator mAnimator;
     private float mFadeRatio = 1;
     private boolean mProgressMode = true;
+    private Paint circlePaint2Copy;
 
     public interface onProgressChangedListener {
         void onProgressChanged(int progress);
@@ -144,6 +150,7 @@ public class Croller extends View {
         nextCirclePaint.setStyle(Paint.Style.STROKE);
 
 
+
         if (isEnabled) {
             circlePaint2.setColor(progressPrimaryColor);
             circlePaint.setColor(progressSecondaryColor);
@@ -158,7 +165,7 @@ public class Croller extends View {
             linePaint.setColor(indicatorDisabledColor);
             textPaint.setColor(labelDisabledColor);
         }
-
+        circlePaint2Copy = new Paint(circlePaint2);
         oval = new RectF();
 
     }
@@ -299,12 +306,14 @@ public class Croller extends View {
             linePaint.setColor(indicatorColor);
             textPaint.setColor(labelColor);
             nextCirclePaint.setColor(progressPrimaryColor);
+            circlePaint2Copy.setColor(progressPrimaryColor);
         } else {
             circlePaint2.setColor(progressPrimaryDisabledColor);
             circlePaint.setColor(progressSecondaryDisabledColor);
             linePaint.setColor(indicatorDisabledColor);
             textPaint.setColor(labelDisabledColor);
             nextCirclePaint.setColor(progressPrimaryDisabledColor);
+            circlePaint2Copy.setColor(progressPrimaryDisabledColor);
         }
 
         if (!isContinuous) {
@@ -332,74 +341,17 @@ public class Croller extends View {
 
             float x, y;
             float deg2 = Math.max(0, deg);
-            
-
-            for (int i = 0; i < max; i++) {
-
-                double tmp =   ((float) sweepAngle / 360) * (2 * Math.PI / max) * i - Math.PI/2 + Math.PI/max + 2 * ( startOffset2) * Math.PI / 360;
-
-                if (isAntiClockwise) {
-                    tmp = 1.0f - tmp;
-                }
-
-                x = midx + (float) (progressRadius * Math.cos(tmp));
-                y = midy + (float) (progressRadius * Math.sin(tmp));
-
-                if (progressSecondaryCircleSize == -1) {
-                    float secondCircleRadius = (float) (Math.PI * radius * sweepAngle / (2 * max * 360));
-                    canvas.drawCircle(x, y, secondCircleRadius, circlePaint);
-                }
-                else  canvas.drawCircle(x, y, progressSecondaryCircleSize, circlePaint);
-
-                if(i == deg2 && deg2 != max){
-
-                    float circleRatio=  !mProgressMode ? (mFadeRatio * 255) : 255;
-
-                    nextCirclePaint.setAlpha((int) (mFadeRatio * circleRatio ));
-                    if (progressSecondaryCircleSize == -1) {
-                        float secondCircleRadius = (float) (Math.PI * radius * sweepAngle / (2 * max * 360));
-                        canvas.drawCircle(x, y, secondCircleRadius, nextCirclePaint);
-                    }
-                    else  canvas.drawCircle(x, y, progressSecondaryCircleSize, nextCirclePaint);
-                }
-
-            }
 
 
-            for (int i = 0; i < deg2; i++) {
+            drawSecondaryProgress(canvas, radius, deg2);
+            drawPrimaryProgress(canvas, deg2);
 
-                double tmp = ((float) sweepAngle / 360) *  (2 * Math.PI / max) * i - Math.PI/2 + Math.PI/max + 2 * ( startOffset2) * Math.PI / 360;
-
-
-                if (isAntiClockwise) {
-                    tmp = 1.0f - tmp;
-                }
-
-                x = midx + (float) (progressRadius * Math.cos(tmp));
-                y = midy + (float) (progressRadius * Math.sin(tmp));
-                float  circleRadius;
-
-
-                float circleRatio=  (i== (deg2 -1) && !mProgressMode) ? (1- mFadeRatio) * 255 : 255;
-                Paint circlePaint2Copy = new Paint(circlePaint2);
-                circlePaint2Copy.setAlpha((int) (mFadeRatio * circleRatio));
-
-                if (progressPrimaryCircleSize == -1) {
-                    circleRadius= (progressRadius / 15 * ((float) 20 / max) * ((float) sweepAngle / 270));
-
-                    canvas.drawCircle(x, y, circleRadius, circlePaint2);
-                }
-                else {
-                    circleRadius = progressPrimaryCircleSize;
-                    canvas.drawCircle(x, y, circleRadius, circlePaint2);
-                }
-            }
 
             double tmp2 = ((float) sweepAngle / 360) * (2 * Math.PI / max) * (deg -1) - Math.PI/2 + Math.PI/max + 2 * ( startOffset2) * Math.PI / 360;
 
-            if (isAntiClockwise) {
-                tmp2 = 1.0f - tmp2;
-            }
+
+            if (isAntiClockwise)  tmp2 = 1.0f - tmp2;
+
 
             float x1 = midx + (float) (radius * ((float) 2 / 5) * Math.cos(tmp2));
             float y1 = midy + (float) (radius * ((float) 2 / 5) * Math.sin(tmp2));
@@ -415,6 +367,7 @@ public class Croller extends View {
                 circlePaint.setColor(mainCircleColor);
             else
                 circlePaint.setColor(mainCircleDisabledColor);
+
             canvas.drawCircle(midx, midy, mainCircleRadius, circlePaint);
             canvas.drawText(label, midx, midy + (float) (radius * 1.1)-textPaint.getFontMetrics().descent, textPaint);
             canvas.drawLine(x1, y1, x2, y2, linePaint);
@@ -480,6 +433,83 @@ public class Croller extends View {
             canvas.drawCircle(midx, midy, mainCircleRadius, circlePaint);
             canvas.drawText(label, midx, midy + (float) (radius * 1.1)-textPaint.getFontMetrics().descent, textPaint);
             canvas.drawLine(x1, y1, x2, y2, linePaint);
+        }
+    }
+
+    private void drawSecondaryProgress(Canvas canvas, int radius, float deg2) {
+        float x;
+        float y;
+
+        for (int i = 0; i < max; i++) {
+
+            double tmp =   ((float) sweepAngle / 360) * (2 * Math.PI / max) * i - Math.PI/2 + Math.PI/max + 2 * ( startOffset2) * Math.PI / 360;
+
+            if (isAntiClockwise) {
+                tmp = 1.0f - tmp;
+            }
+
+            x = midx + (float) (progressRadius * Math.cos(tmp));
+            y = midy + (float) (progressRadius * Math.sin(tmp));
+
+            if (progressSecondaryCircleSize == -1) {
+                float secondCircleRadius = (float) (Math.PI * radius * sweepAngle / (2 * max * 360));
+                canvas.drawCircle(x, y, secondCircleRadius, circlePaint);
+            }
+            else  canvas.drawCircle(x, y, progressSecondaryCircleSize, circlePaint);
+
+            if((i == deg2 || i == deg2 -1) && deg2 != max && mProgressMode){
+                if (progressSecondaryCircleSize == -1) {
+                    float secondCircleRadius = (float) (Math.PI * radius * sweepAngle / (2 * max * 360));
+                    canvas.drawCircle(x, y, secondCircleRadius, nextCirclePaint);
+                }
+                else  canvas.drawCircle(x, y, progressSecondaryCircleSize, nextCirclePaint);
+            }
+
+            else if(i== deg2 && deg2 != 0 && !mProgressMode){
+                float circleRatio=  255;
+
+                nextCirclePaint.setAlpha((int) (circleRatio ));
+                if (progressSecondaryCircleSize == -1) {
+                    float secondCircleRadius = (float) (Math.PI * radius * sweepAngle / (2 * max * 360));
+                    canvas.drawCircle(x, y, secondCircleRadius, nextCirclePaint);
+                }
+                else  canvas.drawCircle(x, y, progressSecondaryCircleSize, nextCirclePaint);
+            }
+
+        }
+    }
+
+    private void drawPrimaryProgress(Canvas canvas, float deg2) {
+        float x;
+        float y;
+        for (int i = 0; i <= deg2; i++) {
+
+            double tmp = ((float) sweepAngle / 360) *  (2 * Math.PI / max) * i - Math.PI/2 + Math.PI/max + 2 * ( startOffset2) * Math.PI / 360;
+
+
+            if (isAntiClockwise) {
+                tmp = 1.0f - tmp;
+            }
+
+            x = midx + (float) (progressRadius * Math.cos(tmp));
+            y = midy + (float) (progressRadius * Math.sin(tmp));
+            float  circleRadius;
+
+            float circleRatio;
+            if(i== deg2 -1 && mProgressMode || (i== deg2 && !mProgressMode)) {
+                circleRatio = mFadeRatio * 255;
+            }
+            else if(i != deg2)  circleRatio = 255;
+            else circleRatio = 0;
+
+            circlePaint2Copy.setAlpha((int) (circleRatio));
+
+            if (progressPrimaryCircleSize == -1)
+                circleRadius= (progressRadius / 15 * ((float) 20 / max) * ((float) sweepAngle / 270));
+
+            else circleRadius = progressPrimaryCircleSize;
+
+            canvas.drawCircle(x, y, circleRadius, circlePaint2Copy);
         }
     }
 
@@ -604,20 +634,22 @@ public class Croller extends View {
     }
 
     public void setProgress(int x) {
+
+        if(x > max || x < min) return;
         PropertyValuesHolder propertyRadius;
         if(deg < x) {
             propertyRadius  = PropertyValuesHolder.ofFloat(PROPERTY_FADE_RATIO, 0, 1);
             mProgressMode  = true;
         }
         else        {
-            propertyRadius  = PropertyValuesHolder.ofFloat(PROPERTY_FADE_RATIO, 0, 1);
-            mProgressMode  = true;
+            propertyRadius  = PropertyValuesHolder.ofFloat(PROPERTY_FADE_RATIO, 1, 0);
+            mProgressMode  = false;
         }
 
         deg = x;
         if(mAnimator != null)   mAnimator.cancel();
         mAnimator = new ValueAnimator();
-        mAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        mAnimator.setInterpolator(new FastOutLinearInInterpolator());
         mAnimator.setValues(propertyRadius);
         mAnimator.setDuration(200);
         mAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
